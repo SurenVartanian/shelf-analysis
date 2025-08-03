@@ -1,0 +1,91 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Documentation
+docs/_build/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+
+# Large data files (can be mounted as volumes)
+comparison/results/
+comparison/yolo_dataset/runs/
+comparison/visualization/
+comparison/comparison_visuals/
+comparison/gpt_annotations/
+
+# Keep the custom model but exclude other .pt files
+*.pt
+!models/yolo/shelf_analysis_custom.pt
+
+# Jupyter
+.ipynb_checkpoints
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml 

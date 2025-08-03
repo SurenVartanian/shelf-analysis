@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  shelf-analysis:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - DEBUG=True
+      - YOLO_MODEL=yolov8n.pt
+      - CONFIDENCE_THRESHOLD=0.5
+      - MAX_IMAGE_WIDTH=1024
+      - MAX_IMAGE_HEIGHT=768
+    volumes:
+      # Mount for persistent data
+      - ./data:/app/data
+      # Mount for logs
+      - ./logs:/app/logs
+      # Mount for Google credentials (if using service account)
+      - ${GOOGLE_APPLICATION_CREDENTIALS:-/dev/null}:${GOOGLE_APPLICATION_CREDENTIALS:-/dev/null}:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Add Redis for caching (future enhancement)
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
+
+# volumes:
+#   redis_data: 
