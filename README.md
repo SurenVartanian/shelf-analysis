@@ -26,6 +26,31 @@ See `comparison/FINAL_COMPARISON_REPORT.md` for detailed analysis.
 
 ## 🛠️ Quick Start
 
+### **Option 1: Docker (Recommended)**
+
+1. **Clone and Setup**:
+   ```bash
+   git clone https://github.com/SurenVartanian/shelf-analysis.git
+   cd shelf-analysis
+   ```
+
+2. **Set Environment Variables**:
+   ```bash
+   cp env.example .env
+   # Edit .env with your API keys
+   ```
+
+3. **Run with Docker Compose**:
+   ```bash
+   docker-compose up --build
+   ```
+
+4. **Test the API**:
+   - Visit `http://localhost:8000/docs` for interactive API documentation
+   - Visit `http://localhost:8000` for the web interface
+
+### **Option 2: Local Development**
+
 1. **Install Dependencies**:
    ```bash
    pip install -r requirements.txt
@@ -132,7 +157,16 @@ shelf-analysis/
 │   └── results/                # Comparison results (gitignored)
 ├── static/                     # Web interface
 ├── tests/                      # Test suite
+├── models/                     # ML models
+│   └── yolo/                   # YOLO models
+│       └── shelf_analysis_custom.pt # Custom trained model
+├── Dockerfile                  # Docker image definition
+├── docker-compose.yml          # Docker orchestration
+├── docker-start.sh             # Docker entrypoint script
+├── .dockerignore               # Docker build exclusions
+├── DOCKER.md                   # Docker documentation
 ├── requirements.txt            # Python dependencies
+├── env.example                 # Environment variables template
 └── README.md                   # This file
 ```
 
@@ -152,6 +186,71 @@ LITELLM_LOG=DEBUG
 - Custom YOLO model: `models/yolo/shelf_analysis_custom.pt`
 - Standard YOLO model: Downloaded automatically
 - LLM models: Configured via LiteLLM
+
+## 🐳 Docker Support
+
+### **Docker Features**
+- **Multi-stage build** for optimized image size
+- **Health checks** for container monitoring
+- **Volume mounts** for persistent data and logs
+- **Environment variable support** via `.env` file
+- **Hot reload** for development
+
+### **Docker Commands**
+
+**Build and Run**:
+```bash
+# Build and start the application
+docker-compose up --build
+
+# Run in background
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Stop the application
+docker-compose down
+```
+
+**Individual Docker Commands**:
+```bash
+# Build the image
+docker build -t shelf-analysis .
+
+# Run the container
+docker run -p 8000:8000 --env-file .env shelf-analysis
+
+# Run with custom environment variables
+docker run -p 8000:8000 \
+  -e OPENAI_API_KEY=your_key \
+  -e GOOGLE_APPLICATION_CREDENTIALS=/path/to/creds.json \
+  shelf-analysis
+```
+
+### **Docker Configuration**
+- **Base Image**: Python 3.12
+- **Port**: 8000 (exposed)
+- **Volumes**: 
+  - `./data:/app/data` (persistent data)
+  - `./logs:/app/logs` (application logs)
+- **Health Check**: `http://localhost:8000/health`
+
+### **Production Docker Setup**
+```bash
+# Production build (no development dependencies)
+docker build --target production -t shelf-analysis:prod .
+
+# Run with production settings
+docker run -d \
+  --name shelf-analysis-prod \
+  -p 8000:8000 \
+  --env-file .env \
+  --restart unless-stopped \
+  shelf-analysis:prod
+```
+
+See `DOCKER.md` for detailed Docker documentation.
 
 ## 🚀 Production Deployment
 
