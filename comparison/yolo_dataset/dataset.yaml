@@ -1,0 +1,11 @@
+path: /Users/suren/projects/shelf-analysis/comparison/yolo_dataset
+train: train/images
+val: val/images
+test: test/images
+nc: 5
+names:
+- bottle
+- can
+- package
+- fruit
+- box

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelf Analysis - AI-Powered Retail Analytics</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛒 Shelf Analysis</h1>
+            <p>AI-Powered Retail Shelf Analytics with Custom YOLO + Gemini Flash Lite</p>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <h2>📸 Upload Shelf Image</h2>
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                    <div class="upload-content">
+                        <div class="upload-icon">📷</div>
+                        <p>Click to select an image or drag and drop</p>
+                        <p class="upload-hint">Supports: JPG, PNG, WebP</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Model Info Section -->
+            <section class="model-info-section">
+                <h2>🤖 Analysis Model</h2>
+                <div class="model-info">
+                    <div class="model-card">
+                        <div class="model-icon">⚡</div>
+                        <div class="model-name">Custom YOLO + Gemini Flash Lite</div>
+                        <div class="model-desc">Ultra Fast & Accurate</div>
+                        <div class="model-badge">RECOMMENDED</div>
+                    </div>
+                    <div class="model-details">
+                        <p><strong>Features:</strong></p>
+                        <ul>
+                            <li>🎯 Custom YOLO model trained on 85 shelf images</li>
+                            <li>⚡ 3-6x faster than GPT-4o</li>
+                            <li>💰 5-10x cheaper than GPT-4o</li>
+                            <li>📊 Better shelf detection accuracy</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analysis Controls -->
+            <section class="controls-section">
+                <h2>🔍 Analysis Options</h2>
+                <div class="analysis-buttons">
+                    <button id="analyzeBtn" class="btn btn-primary" onclick="analyzeImage()" disabled>
+                        🔍 Analyze Image
+                    </button>
+                    <button id="streamBtn" class="btn btn-secondary" onclick="analyzeImageStream()" disabled>
+                        ⚡ Stream Analysis
+                    </button>
+                    <button id="visualizeBtn" class="btn btn-info" onclick="visualizeCropping()" disabled>
+                        🎯 Visualize Detections
+                    </button>
+                </div>
+                <div class="analysis-hint">
+                    <p><strong>Regular Analysis:</strong> Complete analysis with final results</p>
+                    <p><strong>Stream Analysis:</strong> Real-time streaming results as they're generated</p>
+                    <p><strong>Visualize Detections:</strong> See all YOLO detections and main frame selection</p>
+                </div>
+            </section>
+
+            <!-- Loading Section -->
+            <section id="loadingSection" class="loading-section" style="display: none;">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing image...</p>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="resultsSection" class="results-section" style="display: none;">
+                <!-- Stats Grid -->
+                <div class="stats-section">
+                    <h2>📊 Analysis Statistics</h2>
+                    <div id="statsGrid" class="stats-grid"></div>
+                </div>
+
+                <!-- Image Analysis -->
+                <div class="image-section">
+                    <h2>🖼️ Image Analysis</h2>
+                    <div id="imageContainer" class="image-container"></div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Powered by Custom YOLO + Gemini Flash Lite + FastAPI</p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
