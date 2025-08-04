@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelf Analysis Ground Truth Annotator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .instructions {
+            background: #e3f2fd;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .image-selector {
+            margin-bottom: 30px;
+        }
+
+        .image-selector label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .image-selector select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1em;
+            background: white;
+        }
+
+        .navigation-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+        }
+
+        .nav-btn:hover {
+            background: #5a67d8;
+        }
+
+        .nav-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .current-image-info {
+            text-align: center;
+            flex: 2;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .annotation-area {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .image-display {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-display img {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .placeholder {
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        .annotation-form {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        .counter-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 8px;
+        }
+
+        .counter-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .counter-btn:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+
+        .counter-display {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .help-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .quality-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .quality-btn {
+            padding: 10px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .quality-btn.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .progress {
+            background: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .annotation-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏪 Shelf Analysis Ground Truth Annotator</h1>
+            <p>Help us create accurate training data for AI shelf analysis</p>
+        </div>
+
+        <div class="instructions">
+            <strong>📋 Instructions:</strong> 
+            Select an image, count the horizontal shelf levels carefully, estimate products, assess image quality, and download your annotation. 
+            <strong>Horizontal shelves only</strong> - don't count vertical dividers or floor-level items unless they're clearly bottom shelves.
+        </div>
+
+        <div class="main-content">
+            <div class="progress">
+                <span id="progress-text">Select an image to start annotating</span>
+            </div>
+
+            <div class="image-selector">
+                <label for="image-select">Select Image to Annotate:</label>
+                <select id="image-select">
+                    <option value="">Choose an image...</option>
+                </select>
+                
+                <div class="navigation-controls">
+                    <button type="button" class="nav-btn" id="prev-btn" onclick="navigateImage(-1)" disabled>← Previous</button>
+                    <div class="current-image-info" id="current-info">Select an image to start</div>
+                    <button type="button" class="nav-btn" id="next-btn" onclick="navigateImage(1)" disabled>Next →</button>
+                </div>
+            </div>
+
+            <div class="annotation-area">
+                <div class="image-display" id="image-display">
+                    <div class="placeholder">📸 Select an image to begin annotation</div>
+                </div>
+
+                <div class="annotation-form">
+                    <div class="form-group">
+                        <label>Expected Shelves <span class="required">*</span></label>
+                        <div class="counter-group">
+                            <button type="button" class="counter-btn" onclick="changeShelves(-1)">−</button>
+                            <div class="counter-display" id="shelves-count">0</div>
+                            <button type="button" class="counter-btn" onclick="changeShelves(1)">+</button>
+                        </div>
+                        <div class="help-text">Count horizontal shelf levels only</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Expected Products (Optional)</label>
+                        <div class="counter-group">
+                            <button type="button" class="counter-btn" onclick="changeProducts(-1)">−</button>
+                            <div class="counter-display" id="products-count">0</div>
+                            <button type="button" class="counter-btn" onclick="changeProducts(1)">+</button>
+                        </div>
+                        <div class="help-text">Approximate count of individual items</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Image Quality</label>
+                        <div class="quality-options">
+                            <div class="quality-btn" onclick="selectQuality('excellent')">Excellent</div>
+                            <div class="quality-btn" onclick="selectQuality('good')">Good</div>
+                            <div class="quality-btn" onclick="selectQuality('fair')">Fair</div>
+                            <div class="quality-btn" onclick="selectQuality('poor')">Poor</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notes (Optional)</label>
+                        <textarea id="notes" placeholder="e.g., '4 shelf levels with typical retail stocking' or 'curved shelf configuration'"></textarea>
+                        <div class="help-text">Any additional context about the image</div>
+                    </div>
+
+                    <div class="buttons">
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
+                        <button type="button" class="btn btn-primary" onclick="downloadAnnotation()">Download JSON</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // All 303 images from your collection
+        const IMAGES = ['IMG_20250728_132729.jpg','IMG_20250728_132733.jpg','IMG_20250728_132740.jpg','IMG_20250728_132744.jpg','IMG_20250728_132747.jpg','IMG_20250728_132757.jpg','IMG_20250728_132806.jpg','IMG_20250728_132811.jpg','IMG_20250728_132814.jpg','IMG_20250728_132816.jpg','IMG_20250728_132825.jpg','IMG_20250728_132831.jpg','IMG_20250728_132838.jpg','IMG_20250728_132841.jpg','IMG_20250728_132845.jpg','IMG_20250728_132848.jpg','IMG_20250728_132859.jpg','IMG_20250728_132902.jpg','IMG_20250728_132904.jpg','IMG_20250728_132915.jpg','IMG_20250728_132920.jpg','IMG_20250728_132922.jpg','IMG_20250728_132925.jpg','IMG_20250728_132927.jpg','IMG_20250728_132929.jpg','IMG_20250728_132937.jpg','IMG_20250728_132938.jpg','IMG_20250728_132941.jpg','IMG_20250728_132949.jpg','IMG_20250728_132952.jpg','IMG_20250728_132956.jpg','IMG_20250728_132958.jpg','IMG_20250728_133001.jpg','IMG_20250728_134545.jpg','IMG_20250728_134547.jpg','IMG_20250728_134556.jpg','IMG_20250728_134606.jpg','IMG_20250728_134609.jpg','IMG_20250728_134620.jpg','IMG_20250728_134620_1.jpg','IMG_20250728_134621.jpg','IMG_20250728_134625.jpg','IMG_20250728_134630.jpg','IMG_20250728_134636.jpg','IMG_20250728_134639.jpg','IMG_20250728_134642.jpg','IMG_20250728_134650.jpg','IMG_20250728_134655.jpg','IMG_20250728_134711.jpg','IMG_20250728_134715.jpg','IMG_20250728_134721.jpg','IMG_20250728_134725.jpg','IMG_20250728_134740.jpg','IMG_20250728_134745.jpg','IMG_20250728_134750.jpg','IMG_20250728_134752.jpg','IMG_20250728_134758.jpg','IMG_20250728_134801.jpg','IMG_20250728_134805.jpg','IMG_20250728_134812.jpg','IMG_20250728_134816.jpg','IMG_20250728_134820.jpg','IMG_20250728_134823.jpg','IMG_20250728_134831.jpg','IMG_20250728_134835.jpg','IMG_20250728_134839.jpg','IMG_20250728_134841.jpg','IMG_20250728_134844.jpg','IMG_20250728_134850.jpg','IMG_20250728_134853.jpg','IMG_20250728_134856.jpg','IMG_20250728_134901.jpg','IMG_20250728_134907.jpg','IMG_20250728_134911.jpg','IMG_20250728_134914.jpg','IMG_20250728_134936.jpg','IMG_20250728_134940.jpg','IMG_20250728_134947.jpg','IMG_20250728_134949.jpg','IMG_20250728_134953.jpg','IMG_20250728_134955.jpg','IMG_20250728_134958.jpg','IMG_20250728_135001.jpg','IMG_20250728_135012.jpg','IMG_20250728_135015.jpg','IMG_20250728_135018.jpg','IMG_20250728_135020.jpg','IMG_20250728_135033.jpg','IMG_20250728_135036.jpg','IMG_20250728_135040.jpg','IMG_20250728_135459.jpg','IMG_20250728_135505.jpg','IMG_20250728_135509.jpg','IMG_20250731_142546.jpg','IMG_20250731_142549.jpg','IMG_20250731_142556.jpg','IMG_20250731_142648.jpg','IMG_20250731_142650.jpg','IMG_20250731_142659.jpg','IMG_20250731_142701.jpg','IMG_20250731_142710.jpg','IMG_20250731_142713.jpg','IMG_20250731_142716.jpg','IMG_20250731_142719.jpg','IMG_20250731_142724.jpg','IMG_20250731_142729.jpg','IMG_20250731_142732.jpg','IMG_20250731_142736.jpg','IMG_20250731_142742.jpg','IMG_20250731_142746.jpg','IMG_20250731_142748.jpg','IMG_20250731_142751.jpg','IMG_20250731_142753.jpg','IMG_20250731_142755.jpg','IMG_20250731_142756.jpg','IMG_20250731_142758.jpg','IMG_20250731_142802.jpg','IMG_20250731_142803.jpg','IMG_20250731_142805 copy.jpg','IMG_20250731_142805.jpg','IMG_20250731_142813.jpg','IMG_20250731_142814.jpg','IMG_20250731_142815.jpg','IMG_20250731_142819.jpg','IMG_20250731_142824.jpg','IMG_20250731_142828.jpg','IMG_20250731_142831.jpg','IMG_20250731_142835.jpg','IMG_20250731_142841.jpg','IMG_20250731_142846.jpg','IMG_20250731_142851.jpg','IMG_20250731_142902.jpg','IMG_20250731_142906.jpg','IMG_20250731_142908.jpg','IMG_20250731_142911.jpg','IMG_20250731_142915.jpg','IMG_20250731_142917.jpg','IMG_20250731_142919.jpg','IMG_20250731_142921.jpg','IMG_20250731_142926.jpg','IMG_20250731_142927.jpg','IMG_20250731_142929.jpg','IMG_20250731_142933.jpg','IMG_20250731_142935.jpg','IMG_20250731_142936.jpg','IMG_20250731_142937.jpg','IMG_20250731_142944.jpg','IMG_20250731_142946 copy.jpg','IMG_20250731_142946.jpg','IMG_20250731_142948.jpg','IMG_20250731_142949.jpg','IMG_20250731_142952.jpg','IMG_20250731_142955.jpg','IMG_20250731_142957.jpg','IMG_20250731_142959 copy.jpg','IMG_20250731_142959.jpg','IMG_20250731_143003.jpg','IMG_20250731_143006.jpg','IMG_20250731_143009.jpg','IMG_20250731_143011 copy.jpg','IMG_20250731_143011.jpg','IMG_20250731_143014.jpg','IMG_20250731_143015.jpg','IMG_20250731_143018.jpg','IMG_20250731_143020.jpg','IMG_20250731_143025 copy.jpg','IMG_20250731_143025.jpg','IMG_20250731_143028.jpg','IMG_20250731_143031.jpg','IMG_20250731_143032.jpg','IMG_20250731_143033.jpg','IMG_20250731_143037.jpg','IMG_20250731_143039 copy.jpg','IMG_20250731_143039.jpg','IMG_20250731_143043.jpg','IMG_20250731_143044.jpg','IMG_20250731_143047.jpg','IMG_20250731_143051 copy.jpg','IMG_20250731_143051.jpg','IMG_20250731_143056.jpg','IMG_20250731_143058.jpg','IMG_20250731_143109.jpg','IMG_20250731_143112.jpg','IMG_20250731_143116.jpg','IMG_20250731_143119.jpg','IMG_20250731_143122.jpg','IMG_20250731_143129.jpg','IMG_20250731_143132.jpg','IMG_20250731_143137.jpg','IMG_20250731_143139.jpg','IMG_20250731_143145.jpg','IMG_20250731_143148.jpg','IMG_20250731_143152.jpg','IMG_20250731_143156.jpg','IMG_20250731_143203.jpg','IMG_20250731_143205.jpg','IMG_20250731_143210.jpg','IMG_20250731_143214.jpg','IMG_20250731_143218.jpg','IMG_20250731_143315.jpg','IMG_20250731_143317.jpg','IMG_20250731_143321.jpg','IMG_20250731_143323.jpg','IMG_20250731_143329.jpg','IMG_20250731_143332.jpg','IMG_20250731_143335.jpg','IMG_20250731_143338.jpg','IMG_20250731_143340.jpg','IMG_20250731_143344.jpg','IMG_20250731_143348.jpg','IMG_20250731_143351.jpg','IMG_20250731_143400.jpg','IMG_20250731_143404.jpg','IMG_20250731_143412.jpg','IMG_20250731_143415.jpg','IMG_20250731_143417.jpg','IMG_20250731_143419.jpg','IMG_20250731_143422.jpg','IMG_20250731_143423.jpg','IMG_20250731_143427.jpg','IMG_20250731_143430.jpg','IMG_20250731_143433.jpg','IMG_20250731_143436.jpg','IMG_20250731_143441.jpg','IMG_20250731_143448.jpg','IMG_20250731_143449.jpg','IMG_20250731_143501.jpg','IMG_20250731_143502.jpg','IMG_20250731_143513.jpg','IMG_20250731_143515.jpg','IMG_20250731_143518.jpg','IMG_20250731_143519.jpg','IMG_20250731_143521.jpg','IMG_20250731_143522.jpg','IMG_20250731_143523.jpg','IMG_20250731_143527.jpg','IMG_20250731_143532.jpg','IMG_20250731_143540.jpg','IMG_20250731_155116.jpg','IMG_20250731_155124.jpg','IMG_20250731_155131.jpg','IMG_20250731_155146.jpg','IMG_20250731_155150.jpg','IMG_20250731_155157.jpg','IMG_20250731_155202.jpg','IMG_20250731_155214.jpg','IMG_20250731_155221.jpg','IMG_20250731_155226.jpg','IMG_20250731_155230.jpg','IMG_20250731_155235.jpg','IMG_20250731_155244.jpg','IMG_20250731_155247.jpg','IMG_20250731_155255.jpg','IMG_20250731_155258.jpg','IMG_20250731_155308.jpg','IMG_20250731_155345.jpg','IMG_20250731_155351.jpg','IMG_20250731_155401.jpg','IMG_20250731_155405.jpg','IMG_20250731_155433.jpg','IMG_20250731_155438.jpg','IMG_20250731_155445.jpg','IMG_20250731_155447.jpg','IMG_20250731_155454.jpg','IMG_20250731_155457.jpg','IMG_20250731_155502.jpg','IMG_20250731_155503.jpg','IMG_20250731_155506.jpg','IMG_20250731_155511.jpg','IMG_20250731_155513.jpg','IMG_20250731_155532.jpg','IMG_20250731_155535.jpg','IMG_20250731_155544.jpg','IMG_20250731_155547.jpg','IMG_20250731_155553.jpg','IMG_20250731_155557.jpg','IMG_20250731_155601.jpg','IMG_20250731_155603.jpg','IMG_20250731_155607.jpg','IMG_20250731_155610.jpg','IMG_20250731_155618.jpg','IMG_20250731_155620.jpg','IMG_20250731_155628.jpg','IMG_20250731_155631.jpg','IMG_20250731_155635.jpg','IMG_20250731_155637.jpg','IMG_20250731_155643.jpg','IMG_20250731_155644.jpg','IMG_20250731_155647.jpg','IMG_20250731_155651.jpg','IMG_20250731_155654.jpg','IMG_20250731_155659.jpg','IMG_20250731_155702.jpg','IMG_20250731_155707.jpg','IMG_20250731_155709.jpg','IMG_20250731_155758.jpg','IMG_20250731_155803.jpg','IMG_20250731_155807.jpg','IMG_20250731_155811.jpg','IMG_20250731_155816.jpg','IMG_20250731_155818.jpg','IMG_20250731_155827.jpg','IMG_20250731_155831.jpg'];
+
+        // Images hosted on GitHub
+        const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/SurenVartanian/shelf-analysis/main/comparison/images/';
+
+        let currentData = {
+            expected_shelves: 0,
+            expected_products: 0,
+            image_quality: '',
+            notes: ''
+        };
+
+        let currentImageName = '';
+        let selectedQuality = '';
+        let currentImageIndex = -1;
+
+        // Initialize the app
+        function init() {
+            const select = document.getElementById('image-select');
+            
+            IMAGES.forEach(imageName => {
+                const option = document.createElement('option');
+                option.value = imageName;
+                option.textContent = imageName;
+                select.appendChild(option);
+            });
+
+            select.addEventListener('change', loadImage);
+        }
+
+        function loadImage() {
+            const select = document.getElementById('image-select');
+            const imageName = select.value;
+            
+            if (!imageName) return;
+
+            currentImageName = imageName;
+            currentImageIndex = IMAGES.indexOf(imageName);
+            
+            const imageDisplay = document.getElementById('image-display');
+            const img = document.createElement('img');
+            img.src = IMAGE_BASE_URL + imageName;
+            img.alt = imageName;
+            img.onerror = function() {
+                imageDisplay.innerHTML = `<div class="placeholder">❌ Could not load ${imageName}<br><small>Check if image exists at: ${this.src}</small></div>`;
+            };
+            
+            imageDisplay.innerHTML = '';
+            imageDisplay.appendChild(img);
+
+            updateProgress();
+            updateNavigationButtons();
+            resetForm();
+        }
+
+        function navigateImage(direction) {
+            const newIndex = currentImageIndex + direction;
+            
+            if (newIndex >= 0 && newIndex < IMAGES.length) {
+                const select = document.getElementById('image-select');
+                select.value = IMAGES[newIndex];
+                loadImage();
+            }
+        }
+
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const currentInfo = document.getElementById('current-info');
+            
+            if (currentImageIndex >= 0) {
+                prevBtn.disabled = currentImageIndex === 0;
+                nextBtn.disabled = currentImageIndex === IMAGES.length - 1;
+                currentInfo.textContent = `Image ${currentImageIndex + 1} of ${IMAGES.length}`;
+            } else {
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+                currentInfo.textContent = 'Select an image to start';
+            }
+        }
+
+        function changeShelves(delta) {
+            currentData.expected_shelves = Math.max(0, currentData.expected_shelves + delta);
+            document.getElementById('shelves-count').textContent = currentData.expected_shelves;
+        }
+
+        function changeProducts(delta) {
+            currentData.expected_products = Math.max(0, currentData.expected_products + delta);
+            document.getElementById('products-count').textContent = currentData.expected_products;
+        }
+
+        function selectQuality(quality) {
+            // Remove previous selection
+            document.querySelectorAll('.quality-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Add selection to clicked button
+            event.target.classList.add('selected');
+            selectedQuality = quality;
+            currentData.image_quality = quality;
+        }
+
+        function resetForm() {
+            currentData = {
+                expected_shelves: 0,
+                expected_products: 0,
+                image_quality: '',
+                notes: ''
+            };
+            
+            document.getElementById('shelves-count').textContent = '0';
+            document.getElementById('products-count').textContent = '0';
+            document.getElementById('notes').value = '';
+            
+            document.querySelectorAll('.quality-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            selectedQuality = '';
+        }
+
+        function downloadAnnotation() {
+            if (!currentImageName) {
+                alert('Please select an image first!');
+                return;
+            }
+
+            // Get current notes
+            currentData.notes = document.getElementById('notes').value.trim();
+
+            // Create filename (remove extension, add .json)
+            const baseName = currentImageName.replace(/\.[^/.]+$/, "");
+            const filename = `${baseName}.json`;
+
+            // Create and download file
+            const dataStr = JSON.stringify(currentData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = filename;
+            link.click();
+
+            // Show success message
+            alert(`✅ Downloaded ${filename}\n\nPlease send this file back to the team!`);
+        }
+
+        function updateProgress() {
+            const progressText = document.getElementById('progress-text');
+            
+            if (currentImageIndex >= 0) {
+                const shortName = currentImageName.length > 30 ? 
+                    currentImageName.substring(0, 30) + '...' : currentImageName;
+                progressText.textContent = `Annotating: ${shortName}`;
+            } else {
+                progressText.textContent = 'Select an image to start annotating';
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
