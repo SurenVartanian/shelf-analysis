@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelf Analysis Ground Truth Annotator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .instructions {
+            background: #e3f2fd;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .image-selector {
+            margin-bottom: 30px;
+        }
+
+        .image-selector label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .image-selector select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1em;
+            background: white;
+        }
+
+        .navigation-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+        }
+
+        .nav-btn:hover {
+            background: #5a67d8;
+        }
+
+        .nav-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .current-image-info {
+            text-align: center;
+            flex: 2;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .annotation-area {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .image-display {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-display img {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .placeholder {
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        .annotation-form {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        .counter-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 8px;
+        }
+
+        .counter-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .counter-btn:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+
+        .counter-display {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .help-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .quality-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .quality-btn {
+            padding: 10px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .quality-btn.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .progress {
+            background: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .annotation-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏪 Shelf Analysis Ground Truth Annotator</h1>
+            <p>Help us create accurate training data for AI shelf analysis</p>
+        </div>
+
+        <div class="instructions">
+            <strong>📋 Instructions:</strong> 
+            Select an image, count the horizontal shelf levels carefully, estimate products, assess image quality, and download your annotation. 
+            <strong>Horizontal shelves only</strong> - don't count vertical dividers or floor-level items unless they're clearly bottom shelves.
+        </div>
+
+        <div class="main-content">
+            <div class="progress">
+                <span id="progress-text">Select an image to start annotating</span>
+            </div>
+
+            <div class="image-selector">
+                <label for="image-select">Select Image to Annotate:</label>
+                <select id="image-select">
+                    <option value="">Choose an image...</option>
+                </select>
+                
+                <div class="navigation-controls">
+                    <button type="button" class="nav-btn" id="prev-btn" onclick="navigateImage(-1)" disabled>← Previous</button>
+                    <div class="current-image-info" id="current-info">Select an image to start</div>
+                    <button type="button" class="nav-btn" id="next-btn" onclick="navigateImage(1)" disabled>Next →</button>
+                </div>
+            </div>
+
+            <div class="annotation-area">
+                <div class="image-display" id="image-display">
+                    <div class="placeholder">📸 Select an image to begin annotation</div>
+                </div>
+
+                <div class="annotation-form">
+                    <div class="form-group">
+                        <label>Expected Shelves <span class="required">*</span></label>
+                        <div class="counter-group">
+                            <button type="button" class="counter-btn" onclick="changeShelves(-1)">−</button>
+                            <div class="counter-display" id="shelves-count">0</div>
+                            <button type="button" class="counter-btn" onclick="changeShelves(1)">+</button>
+                        </div>
+                        <div class="help-text">Count horizontal shelf levels only</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Expected Products (Optional)</label>
+                        <div class="counter-group">
+                            <button type="button" class="counter-btn" onclick="changeProducts(-1)">−</button>
+                            <div class="counter-display" id="products-count">0</div>
+                            <button type="button" class="counter-btn" onclick="changeProducts(1)">+</button>
+                        </div>
+                        <div class="help-text">Approximate count of individual items</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Image Quality</label>
+                        <div class="quality-options">
+                            <div class="quality-btn" onclick="selectQuality('excellent')">Excellent</div>
+                            <div class="quality-btn" onclick="selectQuality('good')">Good</div>
+                            <div class="quality-btn" onclick="selectQuality('fair')">Fair</div>
+                            <div class="quality-btn" onclick="selectQuality('poor')">Poor</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notes (Optional)</label>
+                        <textarea id="notes" placeholder="e.g., '4 shelf levels with typical retail stocking' or 'curved shelf configuration'"></textarea>
+                        <div class="help-text">Any additional context about the image</div>
+                    </div>
+
+                    <div class="buttons">
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
+                        <button type="button" class="btn btn-primary" onclick="downloadAnnotation()">Download JSON</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dynamic image loading - will be populated from the images folder
+        let IMAGES = [];
+
+        // Images hosted on GitHub
+        const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/SurenVartanian/shelf-analysis/main/comparison/images/';
+
+        let currentData = {
+            expected_shelves: 0,
+            expected_products: 0,
+            image_quality: '',
+            notes: ''
+        };
+
+        let currentImageName = '';
+        let selectedQuality = '';
+        let currentImageIndex = -1;
+
+        // Initialize the app
+        function init() {
+            loadImageList();
+        }
+
+        // Load all images from the images folder
+        async function loadImageList() {
+            try {
+                // Fetch the list of images from the images folder
+                const response = await fetch('https://api.github.com/repos/SurenVartanian/shelf-analysis/contents/comparison/images');
+                const files = await response.json();
+                
+                // Filter for .jpg files and extract filenames
+                IMAGES = files
+                    .filter(file => file.name.toLowerCase().endsWith('.jpg'))
+                    .map(file => file.name)
+                    .sort();
+                
+                console.log(`Loaded ${IMAGES.length} images from repository`);
+                
+                // Populate the select dropdown
+                const select = document.getElementById('image-select');
+                select.innerHTML = '<option value="">Choose an image...</option>';
+                
+                IMAGES.forEach(imageName => {
+                    const option = document.createElement('option');
+                    option.value = imageName;
+                    option.textContent = imageName;
+                    select.appendChild(option);
+                });
+
+                select.addEventListener('change', loadImage);
+                
+                // Update progress to show total count
+                const progressText = document.getElementById('progress-text');
+                progressText.textContent = `Ready to annotate ${IMAGES.length} images`;
+                
+            } catch (error) {
+                console.error('Failed to load image list:', error);
+                // Fallback: load a basic list of images
+                loadFallbackImageList();
+            }
+        }
+
+        // Fallback function in case GitHub API fails
+        function loadFallbackImageList() {
+            const select = document.getElementById('image-select');
+            select.innerHTML = '<option value="">Choose an image...</option>';
+            
+            // Add a message about the issue
+            const progressText = document.getElementById('progress-text');
+            progressText.textContent = '⚠️ Could not load image list automatically. Please check the console for details.';
+        }
+
+        function loadImage() {
+            const select = document.getElementById('image-select');
+            const imageName = select.value;
+            
+            if (!imageName) return;
+
+            currentImageName = imageName;
+            currentImageIndex = IMAGES.indexOf(imageName);
+            
+            const imageDisplay = document.getElementById('image-display');
+            const img = document.createElement('img');
+            img.src = IMAGE_BASE_URL + imageName;
+            img.alt = imageName;
+            img.onerror = function() {
+                imageDisplay.innerHTML = `<div class="placeholder">❌ Could not load ${imageName}<br><small>Check if image exists at: ${this.src}</small></div>`;
+            };
+            
+            imageDisplay.innerHTML = '';
+            imageDisplay.appendChild(img);
+
+            updateProgress();
+            updateNavigationButtons();
+            resetForm();
+        }
+
+        function navigateImage(direction) {
+            const newIndex = currentImageIndex + direction;
+            
+            if (newIndex >= 0 && newIndex < IMAGES.length) {
+                const select = document.getElementById('image-select');
+                select.value = IMAGES[newIndex];
+                loadImage();
+            }
+        }
+
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const currentInfo = document.getElementById('current-info');
+            
+            if (currentImageIndex >= 0) {
+                prevBtn.disabled = currentImageIndex === 0;
+                nextBtn.disabled = currentImageIndex === IMAGES.length - 1;
+                currentInfo.textContent = `Image ${currentImageIndex + 1} of ${IMAGES.length}`;
+            } else {
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+                currentInfo.textContent = 'Select an image to start';
+            }
+        }
+
+        function changeShelves(delta) {
+            currentData.expected_shelves = Math.max(0, currentData.expected_shelves + delta);
+            document.getElementById('shelves-count').textContent = currentData.expected_shelves;
+        }
+
+        function changeProducts(delta) {
+            currentData.expected_products = Math.max(0, currentData.expected_products + delta);
+            document.getElementById('products-count').textContent = currentData.expected_products;
+        }
+
+        function selectQuality(quality) {
+            // Remove previous selection
+            document.querySelectorAll('.quality-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Add selection to clicked button
+            event.target.classList.add('selected');
+            selectedQuality = quality;
+            currentData.image_quality = quality;
+        }
+
+        function resetForm() {
+            currentData = {
+                expected_shelves: 0,
+                expected_products: 0,
+                image_quality: '',
+                notes: ''
+            };
+            
+            document.getElementById('shelves-count').textContent = '0';
+            document.getElementById('products-count').textContent = '0';
+            document.getElementById('notes').value = '';
+            
+            document.querySelectorAll('.quality-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            selectedQuality = '';
+        }
+
+        function downloadAnnotation() {
+            if (!currentImageName) {
+                alert('Please select an image first!');
+                return;
+            }
+
+            // Get current notes
+            currentData.notes = document.getElementById('notes').value.trim();
+
+            // Create filename (remove extension, add .json)
+            const baseName = currentImageName.replace(/\.[^/.]+$/, "");
+            const filename = `${baseName}.json`;
+
+            // Create and download file
+            const dataStr = JSON.stringify(currentData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = filename;
+            link.click();
+
+            // Show success message
+            alert(`✅ Downloaded ${filename}\n\nPlease send this file back to the team!`);
+        }
+
+        function updateProgress() {
+            const progressText = document.getElementById('progress-text');
+            
+            if (currentImageIndex >= 0) {
+                const shortName = currentImageName.length > 30 ? 
+                    currentImageName.substring(0, 30) + '...' : currentImageName;
+                progressText.textContent = `Annotating: ${shortName}`;
+            } else {
+                progressText.textContent = 'Select an image to start annotating';
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
