@@ -36,8 +36,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload only static files
-          path: './static'
+          # Upload comparison directory with ground truth annotator
+          path: './comparison'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
